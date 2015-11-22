@@ -1,0 +1,26 @@
+##Comparison Cloud
+library(tm)
+library(wordcloud)
+DMods <- read.csv("DemMods.csv")
+RMods <- read.csv("RepubMods.csv")
+t <- Corpus(VectorSource(c(RMods,DMods)))
+t <- tm_map(t,removeNumbers)
+mystops <- c(stopwords('english'),"and")
+t <- tm_map(t,removeWords,mystops,mc.cores=1)
+t <- tm_map(t,removeWords,c("And","but"),lazy=T)
+t <- tm_map(t,removePunctuation)
+tdm <- TermDocumentMatrix(t)
+dimnames(tdm)$Terms
+tdm2 <- removeSparseTerms(tdm,sparse=0.55)
+tdm.matrix <- as.matrix(tdm2)
+tdm.matrix <- tdm.matrix[,c(2,4)]
+colnames(tdm.matrix) <- c("Republican","Democrat")
+set.seed(1234)
+jpeg("Debate Comparison.JPG",res = 120)
+comparison.cloud(tdm.matrix,max.words = 200)
+dev.off()
+
+jpeg("Debate Commonality.JPG",res = 120)
+set.seed(1234)
+col <- brewer.pal(5,"Dark2")
+commonality.cloud(tdm.matrix,max.words = 200,col=col)
